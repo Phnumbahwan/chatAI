@@ -1,75 +1,103 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import { Feather } from '@expo/vector-icons';
+import { useState } from 'react';
+import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { makeChatRequest } from '../../utils/chat';
 
 export default function HomeScreen() {
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState<{ role: string; content: string }[]>([]);
+
+  const sendMessage = async () => {
+    if (!message.trim()) return;
+    const userMsg = { role: 'user', content: message };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setMessage('');
+    try {
+      const response = await makeChatRequest(newMessages);
+      const aiMsg = { role: 'assistant', content: response };
+      setMessages(prev => [...prev, aiMsg]);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <KeyboardAvoidingView style={styles.container} behavior="padding" keyboardVerticalOffset={80}>
+      <View style={styles.inputContainer}>
+        <TextInput
+          value={message}
+          onChangeText={setMessage}
+          style={styles.textBox}
+          placeholder='Type a message...'
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        <TouchableOpacity onPress={sendMessage}>
+          <Feather style={styles.sendIcon} name="send" size={24} color="black" />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.messagesContainer}>
+        {messages.map((msg, index) => (
+          msg.role === 'user' ? (
+            <View key={index} style={styles.userMessage}>
+              <Text style={{ color: '#fff' }}>{msg.content}</Text>
+            </View>
+          ) : (
+            <View key={index} style={styles.AIMessage}>
+              <Text style={{ color: '#1e1e1e' }}>{msg.content}</Text>
+            </View>
+          )
+        ))}
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+    flexDirection: 'column-reverse',
+    backgroundColor: '#000',
+  },
+  userMessage: {
+    color: '#fff',
+    padding: 10,
+    marginVertical: 5,
+    backgroundColor: '#1e1e1e',
+    borderRadius: 10,
+    alignSelf: 'flex-end',
+    maxWidth: '80%',
+  },
+  AIMessage: {
+    color: '#1e1e1eff',
+    padding: 10,
+    marginVertical: 5,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    alignSelf: 'flex-start',
+    maxWidth: '80%',
+  },
+  messagesContainer: {
+    alignItems: 'center',
+    padding: 10,
+    borderTopWidth: 1
+  },
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    padding: 10,
+    borderTopWidth: 1
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  textBox: {
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    flex: 1,
+    color: '#fff'
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
+  sendIcon: {
+    marginLeft: 8,
+    color: '#fff',
+  }
 });
