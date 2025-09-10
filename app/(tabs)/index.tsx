@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { useState } from 'react';
-import { KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { KeyboardAvoidingView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { makeChatRequest } from '../../utils/chat';
 
 export default function HomeScreen() {
@@ -35,19 +35,21 @@ export default function HomeScreen() {
           <Feather style={styles.sendIcon} name="send" size={24} color="black" />
         </TouchableOpacity>
       </View>
-      <View style={styles.messagesContainer}>
-        {messages.map((msg, index) => (
-          msg.role === 'user' ? (
-            <View key={index} style={styles.userMessage}>
-              <Text style={{ color: '#fff' }}>{msg.content}</Text>
-            </View>
-          ) : (
-            <View key={index} style={styles.AIMessage}>
-              <Text style={{ color: '#1e1e1e' }}>{msg.content}</Text>
-            </View>
-          )
-        ))}
-      </View>
+      <ScrollView>
+        <View style={styles.messagesContainer}>
+          {messages.map((msg, index) => (
+            msg.role === 'user' ? (
+              <View key={index} style={styles.userMessage}>
+                <Text style={{ color: '#fff' }}>{msg.content}</Text>
+              </View>
+            ) : (
+              <View key={index} style={styles.AIMessage}>
+                <Text style={{ color: '#1e1e1e' }}>{msg.content}</Text>
+              </View>
+            )
+          ))}
+        </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
